@@ -3,3 +3,4 @@ streamlit
 pypdf
 faiss-cpu
 numpy
+supabase

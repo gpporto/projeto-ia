@@ -4,14 +4,33 @@ from pypdf import PdfReader
 import faiss
 import numpy as np
 import os
+import uuid
+from supabase import create_client, Client
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+supabase: Client = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_KEY")
+)
+
+st.set_page_config(page_title="Chat com PDF", layout="wide")
 st.title("📄 Chat com PDF")
 
 uploaded_file = st.file_uploader("Envie um PDF", type="pdf")
 
 if uploaded_file:
+    file_id = f"{uuid.uuid4()}_{uploaded_file.name}"
+    file_bytes = uploaded_file.getvalue()
+
+    supabase.storage.from_("pdfs").upload(
+        path=file_id,
+        file=file_bytes,
+        file_options={"content-type": "application/pdf"}
+    )
+
+    st.success(f"PDF salvo com sucesso: {file_id}")
+
     reader = PdfReader(uploaded_file)
     text = ""
 
