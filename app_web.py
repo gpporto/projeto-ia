@@ -6,7 +6,7 @@ import numpy as np
 import os
 
 # 🔑 API KEY
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(page_title="Chat com PDF", layout="wide")
 
 st.title("📄 Chat com PDF (IA)")
