@@ -3,10 +3,10 @@ from openai import OpenAI
 from pypdf import PdfReader
 import faiss
 import numpy as np
+import os
 
 # 🔑 API KEY
-client = OpenAI(api_key="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")
-
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 st.set_page_config(page_title="Chat com PDF", layout="wide")
 
 st.title("📄 Chat com PDF (IA)")
