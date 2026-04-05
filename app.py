@@ -1,60 +1,55 @@
-import os
+import streamlit as st
 from openai import OpenAI
 from pypdf import PdfReader
 import faiss
 import numpy as np
 
-# 🔑 sua chave
+# 👉 CHAVE LOCAL (DEPOIS VAMOS TIRAR)
+client = OpenAI(api_key="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")
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# 📄 ler PDF
-reader = PdfReader("arquivo.pdf")
-text = ""
+st.title("📄 Chat com PDF")
 
-for page in reader.pages:
-    text += page.extract_text() + "\n"
+uploaded_file = st.file_uploader("Envie um PDF", type="pdf")
 
-# ✂️ dividir texto
-chunks = [text[i:i+500] for i in range(0, len(text), 500)]
+if uploaded_file:
+    reader = PdfReader(uploaded_file)
+    text = ""
 
-# 🧠 gerar embeddings
-def get_embedding(text):
-    response = client.embeddings.create(
-        model="text-embedding-3-small",
-        input=text
-    )
-    return response.data[0].embedding
+    for page in reader.pages:
+        if page.extract_text():
+            text += page.extract_text()
 
-embeddings = [get_embedding(chunk) for chunk in chunks]
+    chunks = [text[i:i+500] for i in range(0, len(text), 500)]
 
-# 💾 criar índice FAISS
-dimension = len(embeddings[0])
-index = faiss.IndexFlatL2(dimension)
-index.add(np.array(embeddings))
+    embeddings = []
+    for chunk in chunks:
+        emb = client.embeddings.create(
+            model="text-embedding-3-small",
+            input=chunk
+        )
+        embeddings.append(emb.data[0].embedding)
 
-print("\n📄 PDF carregado! Faça sua pergunta:\n")
+    index = faiss.IndexFlatL2(len(embeddings[0]))
+    index.add(np.array(embeddings))
 
-# 🔎 loop de perguntas
-while True:
-    pergunta = input("👉 Pergunta: ")
+    pergunta = st.text_input("Pergunta")
 
-    query_embedding = get_embedding(pergunta)
+    if pergunta:
+        query_emb = client.embeddings.create(
+            model="text-embedding-3-small",
+            input=pergunta
+        ).data[0].embedding
 
-    D, I = index.search(np.array([query_embedding]), k=3)
+        D, I = index.search(np.array([query_emb]), k=3)
 
-    context = "\n".join([chunks[i] for i in I[0]])
+        contexto = "\n".join([chunks[i] for i in I[0]])
 
-    prompt = f"""
-    Responda com base no contexto abaixo:
+        resposta = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{
+                "role": "user",
+                "content": f"Contexto:\n{contexto}\n\nPergunta: {pergunta}"
+            }]
+        )
 
-    {context}
-
-    Pergunta: {pergunta}
-    """
-
-    resposta = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
-    )
-
-    print("\n🤖 Resposta:", resposta.choices[0].message.content, "\n")
+        st.write(resposta.choices[0].message.content)
