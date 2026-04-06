@@ -20,7 +20,7 @@ st.title("📄 Chat com PDF")
 uploaded_file = st.file_uploader("Envie um PDF", type="pdf")
 
 if uploaded_file:
-    file_id = f"{uuid.uuid4()}_{uploaded_file.name}"
+    file_id = f"{uuid.uuid4()}.pdf"
     file_bytes = uploaded_file.getvalue()
 
     supabase.storage.from_("pdfs").upload(
