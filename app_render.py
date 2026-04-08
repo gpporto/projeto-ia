@@ -10,7 +10,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # 🎨 Layout
 st.set_page_config(
-    page_title="Assistente de Editais com IA",
+    page_title="Assistente de Editais",
     page_icon="📄",
     layout="centered"
 )
