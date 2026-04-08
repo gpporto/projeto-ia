@@ -23,19 +23,11 @@ if uploaded_file:
     file_id = f"{uuid.uuid4()}.pdf"
     file_bytes = uploaded_file.getvalue()
 
-    try:
     supabase.storage.from_("pdfs").upload(
         path=file_id,
         file=file_bytes,
-        file_options={
-            "content-type": "application/pdf",
-            "upsert": "true"
-        }
+        file_options={"content-type": "application/pdf"}
     )
-    st.success(f"PDF salvo com sucesso: {file_id}")
-except Exception as e:
-    st.error(f"Erro no upload: {e}")
-    st.stop()
 
     st.success(f"PDF salvo com sucesso: {file_id}")
 
