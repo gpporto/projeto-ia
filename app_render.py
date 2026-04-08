@@ -7,11 +7,11 @@ import os
 import uuid
 from supabase import create_client, Client
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("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"))
 
 supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_KEY")
+    st.write("URL:", os.getenv("SUPABASE_URL")),
+    st.write("KEY começa com:", str(os.getenv("SUPABASE_KEY"))[:20])
 )
 
 st.set_page_config(page_title="Chat com PDF", layout="wide")
