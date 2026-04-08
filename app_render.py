@@ -26,9 +26,9 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # 📎 Upload
-uploaded_file = st.file_uploader("📎 Envie seu PDF", type="pdf")
+uploaded_file = st.file_uploader("📎 Envie seus PDFs", type="pdf", accept_multiple_files=True)
 
-if uploaded_file is not None:
+if uploaded_file:
 
     # 📌 TOPO FIXO
     header = st.container()
@@ -37,19 +37,20 @@ if uploaded_file is not None:
         st.markdown("---")
 
     # 📄 Ler PDF
-    reader = PdfReader(uploaded_file)
-    text = ""
+    
+    chunks = []
+    sources = []
 
-    for page in reader.pages:
-        if page.extract_text():
-            text += page.extract_text() + "\n"
+    for uploaded_file in uploaded_file:
+        reader = PdfReader(uploaded_file)
 
-    if not text.strip():
-        st.warning("Não foi possível extrair texto do PDF.")
-        st.stop()
-
-    # ✂️ Dividir texto
-    chunks = [text[i:i+800] for i in range(0, len(text), 800)]
+        for page in reader.pages:
+            content = page.extract_text()
+            if content:
+                parts = [content[i:i+800] for i in range(0, len(content), 800)]
+                for p in parts:
+                    chunks.append(p)
+                    sources.append(uploaded_file.name)
 
     # 🧠 Index
     @st.cache_resource
@@ -87,7 +88,9 @@ if uploaded_file is not None:
 
         D, I = index.search(np.array([query_emb]), k=3)
 
-        contexto = "\n".join([chunks[i] for i in I[0]])
+        contexto = ""
+        for i in I[0]:
+            contexto += f"[Fonte: {sources[i]}]\n{chunks[i]}\n\n"
 
         resposta = client.chat.completions.create(
             model="gpt-4o-mini",
