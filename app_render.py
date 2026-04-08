@@ -17,6 +17,9 @@ st.set_page_config(
 
 st.title("📄 Assistente de Análise de Editais com IA")
 
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 st.markdown("""
 Envie um edital em PDF e faça perguntas como:
 
@@ -66,11 +69,23 @@ if uploaded_file is not None:
         return index
 
     index = create_index(chunks)
+    
+    for msg in st.session_state.messages:
+        if msg["role"] == "user":
+            st.markdown(f"**🧑 Pergunta:** {msg['content']}")
+        else:
+            st.markdown(f"**🤖 Resposta:** {msg['content']}")
+        
 
     # 💬 Pergunta
-    pergunta = st.text_input("💬 Faça uma pergunta sobre o documento:")
+    #pergunta = st.text_input("💬 Faça uma pergunta sobre o documento:")
+    pergunta = st.chat_input("Faça sua pergunta")
 
     if pergunta:
+        st.session_state.messages.append({
+            "role": "user",
+            "content": pergunta
+        })
 
         query_emb = client.embeddings.create(
             model="text-embedding-3-small",
@@ -99,4 +114,12 @@ Pergunta:
         )
 
         st.markdown("### 🤖 Resposta")
-        st.write(resposta.choices[0].message.content)
+        resposta_texto = resposta.choices[0].message.content
+
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": resposta_texto
+        })
+
+        st.markdown("### 🤖 Resposta")
+        st.write(resposta_texto)
