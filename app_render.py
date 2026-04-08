@@ -5,10 +5,10 @@ import faiss
 import numpy as np
 import os
 
-# 🔑 OpenAI (Render usa variável de ambiente)
+# 🔑 OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# 🎨 Layout bonito
+# 🎨 Layout
 st.set_page_config(
     page_title="Assistente de Editais com IA",
     page_icon="📄",
@@ -17,24 +17,24 @@ st.set_page_config(
 
 st.title("📄 Assistente de Análise de Editais com IA")
 
+st.markdown("""
+Envie um edital em PDF e faça perguntas sobre o conteúdo.
+""")
+
+# 📌 Inicializa histórico
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-st.markdown("""
-Envie um edital em PDF e faça perguntas como:
-
-- Qual o objeto da licitação?
-- Quais são os principais requisitos?
-- Existem riscos ou exigências críticas?
-- Qual o prazo e condições importantes?
-
----
-""")
-
-# Upload
+# 📎 Upload
 uploaded_file = st.file_uploader("📎 Envie seu PDF", type="pdf")
 
 if uploaded_file is not None:
+
+    # 📌 TOPO FIXO
+    header = st.container()
+    with header:
+        st.success("✅ PDF carregado com sucesso!")
+        st.markdown("---")
 
     # 📄 Ler PDF
     reader = PdfReader(uploaded_file)
@@ -48,12 +48,10 @@ if uploaded_file is not None:
         st.warning("Não foi possível extrair texto do PDF.")
         st.stop()
 
-    st.success("✅ PDF carregado com sucesso!")
-
     # ✂️ Dividir texto
     chunks = [text[i:i+800] for i in range(0, len(text), 800)]
 
-    # 🧠 Criar embeddings
+    # 🧠 Index
     @st.cache_resource
     def create_index(chunks):
         embeddings = []
@@ -69,24 +67,19 @@ if uploaded_file is not None:
         return index
 
     index = create_index(chunks)
-    
-    for msg in st.session_state.messages:
-        if msg["role"] == "user":
-            st.markdown(f"**🧑 Pergunta:** {msg['content']}")
-        else:
-            st.markdown(f"**🤖 Resposta:** {msg['content']}")
-        
 
-    # 💬 Pergunta
-    #pergunta = st.text_input("💬 Faça uma pergunta sobre o documento:")
+    # 💬 INPUT PRIMEIRO (ESSA É A CHAVE DO BUG)
     pergunta = st.chat_input("Faça sua pergunta")
 
     if pergunta:
+
+        # salva pergunta
         st.session_state.messages.append({
             "role": "user",
             "content": pergunta
         })
 
+        # gera resposta
         query_emb = client.embeddings.create(
             model="text-embedding-3-small",
             input=pergunta
@@ -96,30 +89,25 @@ if uploaded_file is not None:
 
         contexto = "\n".join([chunks[i] for i in I[0]])
 
-        prompt = f"""
-Você é um especialista em análise de editais e documentos.
-
-Responda de forma clara, objetiva e profissional.
-
-Contexto:
-{contexto}
-
-Pergunta:
-{pergunta}
-"""
-
         resposta = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{
+                "role": "user",
+                "content": f"Contexto:\n{contexto}\n\nPergunta: {pergunta}"
+            }]
         )
 
-        st.markdown("### 🤖 Resposta")
         resposta_texto = resposta.choices[0].message.content
 
+        # salva resposta
         st.session_state.messages.append({
             "role": "assistant",
             "content": resposta_texto
         })
 
-        st.markdown("### 🤖 Resposta")
-        st.write(resposta_texto)
+    # 📜 MOSTRA HISTÓRICO (SEMPRE POR ÚLTIMO)
+    for msg in st.session_state.messages:
+        if msg["role"] == "user":
+            st.markdown(f"**🧑 Pergunta:** {msg['content']}")
+        else:
+            st.markdown(f"**🤖 Resposta:** {msg['content']}")
