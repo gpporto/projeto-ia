@@ -20,8 +20,8 @@ supabase = create_client(
     #st.write("KEY:", os.getenv("SUPABASE_KEY")[:20])
 )
 
-st.write("URL:", os.getenv("SUPABASE_URL")),
-st.write("KEY:", os.getenv("SUPABASE_KEY")[:20])
+#st.write("URL:", os.getenv("SUPABASE_URL")),
+#st.write("KEY:", os.getenv("SUPABASE_KEY")[:20])
 
 # 🔑 OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
