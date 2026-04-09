@@ -23,12 +23,12 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # 🎨 Layout
 st.set_page_config(
-    page_title="Assistente de Editais 21-58",
+    page_title="Assistente de Editais 22-17",
     page_icon="📄",
     layout="centered"
 )
 
-st.title("📄 Assistente de Análise de Editais")
+st.title("📄 Assistente de Análise de Editais 22-17")
 
 st.markdown("""
 Envie um edital em PDF e faça perguntas sobre o conteúdo.
