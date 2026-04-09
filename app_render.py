@@ -14,10 +14,8 @@ if os.getenv("RENDER") is None:
     load_dotenv()
 
 supabase = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_KEY")
-    #st.write("URL:", os.getenv("SUPABASE_URL")),
-    #st.write("KEY:", os.getenv("SUPABASE_KEY")[:20])
+    "https://nyopjahyrdybnddehvky.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxb2xwZ3lmY2tpYWtna29tdnpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzgwNTcsImV4cCI6MjA5MTI1NDA1N30.wfsxnzcDS0RUwXTmsOPpG-oW8iUQofayj8U2rD0ZM-U"
 )
 
 #st.write("URL:", os.getenv("SUPABASE_URL")),
