@@ -16,7 +16,12 @@ if os.getenv("RENDER") is None:
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
     os.getenv("SUPABASE_KEY")
+    #st.write("URL:", os.getenv("SUPABASE_URL")),
+    #st.write("KEY:", os.getenv("SUPABASE_KEY")[:20])
 )
+
+st.write("URL:", os.getenv("SUPABASE_URL")),
+st.write("KEY:", os.getenv("SUPABASE_KEY")[:20])
 
 # 🔑 OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -28,7 +33,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("📄 Assistente de Análise de Editais 23-15")
+st.title("📄 Assistente de Análise de Editais 23-22")
 
 st.markdown("""
 Envie um edital em PDF e faça perguntas sobre o conteúdo.
