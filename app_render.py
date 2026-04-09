@@ -31,7 +31,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("📄 Assistente de Análise de Editais 23-22")
+st.title("📄 Assistente de Análise de Editais 07-36")
 
 st.markdown("""
 Envie um edital em PDF e faça perguntas sobre o conteúdo.
