@@ -5,6 +5,13 @@ import faiss
 import numpy as np
 import os
 
+from supabase import create_client
+
+supabase = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_KEY")
+)
+
 # 🔑 OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -24,6 +31,31 @@ Envie um edital em PDF e faça perguntas sobre o conteúdo.
 # 📌 Inicializa histórico
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# ******************************
+if "user" not in st.session_state:
+    st.session_state.user = None
+
+if st.session_state.user is None:
+
+    st.title("🔐 Login")
+
+    email = st.text_input("Email")
+    senha = st.text_input("Senha", type="password")
+
+    if st.button("Entrar"):
+        try:
+            user = supabase.auth.sign_in_with_password({
+                "email": email,
+                "password": senha
+            })
+            st.session_state.user = user
+            st.rerun()
+        except:
+            st.error("Login inválido")
+
+    st.stop()
+#*******************************
 
 # 📎 Upload
 uploaded_file = st.file_uploader("📎 Envie seus PDFs", type="pdf", accept_multiple_files=True)
@@ -74,11 +106,18 @@ if uploaded_file:
 
     if pergunta:
 
-        # salva pergunta
+        # salva pergunta no histórico local
         st.session_state.messages.append({
             "role": "user",
             "content": pergunta
         })
+
+        # 🔥 SALVA NO BANCO (USER)
+        supabase.table("mensagens").insert({
+            "user_id": st.session_state.user.user.id,
+            "role": "user",
+            "content": pergunta
+        }).execute()
 
         # gera resposta
         query_emb = client.embeddings.create(
@@ -88,9 +127,7 @@ if uploaded_file:
 
         D, I = index.search(np.array([query_emb]), k=3)
 
-        contexto = ""
-        for i in I[0]:
-            contexto += f"[Fonte: {sources[i]}]\n{chunks[i]}\n\n"
+        contexto = "\n".join([chunks[i] for i in I[0]])
 
         resposta = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -102,11 +139,18 @@ if uploaded_file:
 
         resposta_texto = resposta.choices[0].message.content
 
-        # salva resposta
+        # salva resposta local
         st.session_state.messages.append({
             "role": "assistant",
             "content": resposta_texto
         })
+
+        # 🔥 SALVA NO BANCO (ASSISTANT)
+        supabase.table("mensagens").insert({
+            "user_id": st.session_state.user.user.id,
+            "role": "assistant",
+            "content": resposta_texto
+        }).execute()
 
     # 📜 MOSTRA HISTÓRICO (SEMPRE POR ÚLTIMO)
     for msg in st.session_state.messages:
