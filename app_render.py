@@ -55,10 +55,11 @@ if st.session_state.user is None:
                 "email": email,
                 "password": senha
             })
+            st.write(user)  # 👈 MOSTRA RESPOSTA REAL
             st.session_state.user = user
             st.rerun()
-        except:
-            st.error("Login inválido")
+        except Exception as e:
+            st.error(f"Erro real: {e}")
 
     st.stop()
 #*******************************
