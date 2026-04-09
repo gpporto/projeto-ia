@@ -7,8 +7,11 @@ import os
 
 from supabase import create_client
 
-from dotenv import load_dotenv
-load_dotenv()
+import os
+
+if os.getenv("RENDER") is None:
+    from dotenv import load_dotenv
+    load_dotenv()
 
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
